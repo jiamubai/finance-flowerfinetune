@@ -9,9 +9,12 @@ from flwr.server.client_manager import ClientManager
 from flwr.server.client_proxy import ClientProxy
 from flwr.server.strategy import FedAvg
 from flwr.server.strategy.aggregate import aggregate
+from flwr.common import FitRes, NDArray, NDArrays
 
 import torch
 from tqdm import tqdm
+from functools import partial, reduce
+import numpy as np
 
 
 class FlowerTuneLlm(FedAvg):
@@ -106,7 +109,7 @@ class FlowerTuneLlm_FlexLoRA(FedAvg):
         # FlexLoRA
         print('use FlexLoRA for Aggregation')
         fit_res_params = []
-        for _, fit_res in results:
+        for _, fit_res in tqdm(results):
             LoRA_A_list = []
             LoRA_B_list = []
             bis_list = []
@@ -136,12 +139,31 @@ class FlowerTuneLlm_FlexLoRA(FedAvg):
                     mul_params.append(torch.matmul(torch.Tensor(B_weights), torch.Tensor(A_weights)).numpy())
                     mul_params.append(bis)
                 fit_res_params.append(mul_params)
+        print('Finishing multiply out ')
 
         weights_results = [
             (p, fit_res.num_examples)
             for (_, fit_res), p in zip(results, fit_res_params)
         ]
-        weights_results_ = aggregate(weights_results)
+
+        def flexlora_aggregate(results: List[Tuple[NDArrays, int]]) -> NDArrays:
+            """Memory-efficient weighted average aggregation."""
+            num_examples_total = sum(num_examples for _, num_examples in results)
+            num_layers = len(results[0][0])
+
+            # Initialize the accumulator
+            agg_weights = [np.zeros_like(results[0][0][i]) for i in range(num_layers)]
+
+            # Accumulate weighted sum directly
+            for weights, num_examples in results:
+                for i in range(num_layers):
+                    agg_weights[i] += weights[i] * (num_examples / num_examples_total)
+
+            return agg_weights
+
+        print('begin aggregation')
+
+        weights_results_ = flexlora_aggregate(weights_results)
 
         new_LoRA_weights = []
         print('Check weight result lenth')
@@ -205,3 +227,5 @@ class CommunicationTracker:
                 "Please consider reducing it if you plan to participate "
                 "FlowerTune LLM Leaderboard.",
             )
+        del fit_list
+        torch.cuda.empty_cache()

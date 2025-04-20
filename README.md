@@ -1,4 +1,4 @@
-# FlowerTune LLM on Medical Dataset
+# FlowerTune LLM on Finance Dataset
 
 This directory conducts federated instruction tuning with a pretrained Qwen-2.5-7B (https://huggingface.co/Qwen/Qwen2.5-7B) model on a Finance dataset.
 We use [Flower Datasets](https://flower.dev/docs/datasets/) to download, partition and preprocess the dataset.
@@ -21,7 +21,7 @@ pip install -e .
 
 ## Experimental setup
 
-The dataset is divided into 20 partitions in an IID fashion, a partition is assigned to each ClientApp.
+The dataset is divided into 50 partitions in an IID fashion, a partition is assigned to each ClientApp.
 We randomly sample a fraction (0.1) of the total nodes to participate in each round, for a total of `10` rounds.
 All settings are defined in `pyproject.toml`. To run experiments with flexlora, set `use_flexlora` to `1`.
 
@@ -30,12 +30,12 @@ All settings are defined in `pyproject.toml`. To run experiments with flexlora, 
 
 |          | fiqa  |  fpb  | tfns  | Average |
 |:--------:|:-----:|:-----:|:-----:|:-------:|
-|  FedAvg  | 74.34 | 76.98 | 83.29 |  78.20  |
-| FlexLoRA | 75.00 | 83.16 | 80.02 |  79.39  |
+|  FedAvg  | 75.65 | 79.54 | 69.68 |  74.95  |
+| FlexLoRA | 71.05 | 80.69 | 74.79 |  75.51  |
 
 
 ## Model saving
 
-The PEFT checkpoint can be found in: https://drive.google.com/file/d/1XuUdI36Ue3nwG1qVLlEQL1-m2fbewf0N/view?usp=sharing
+The PEFT checkpoint can be found in: https://drive.google.com/file/d/10yhYtINdTUW5GVS-QS2xTptHfjBfGQlh/view?usp=sharing
 
 
