@@ -16,7 +16,7 @@ The clients' models are aggregated with either FedAvg or FlexLoRA strategy.
 Project dependencies are defined in `pyproject.toml`. Install them in an activated Python environment with:
 
 ```shell
-cd flower-nlp
+cd flower-finance
 pip install -e .
 ```
 
